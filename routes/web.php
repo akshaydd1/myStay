@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\StudentRegistration;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redirect;
+use App\Models\HostelStudent;
 
 Route::get('/', function () {
     return view('landing');
@@ -103,3 +106,23 @@ Route::post('/password/reset', function (\Illuminate\Http\Request $request) {
     \DB::table('password_resets')->where('email', $request->email)->delete();
     return redirect('/login')->with('status', 'Password has been reset!');
 })->name('password.update');
+
+Route::post('/hostel-students', function (Request $request) {
+    $request->validate([
+        'student_id' => 'required|exists:student_registrations,student_id',
+        'room_number' => 'nullable|string|max:10',
+        'admission_in_date' => 'required|date',
+        'bed_number' => 'nullable|string|max:10',
+        'deposit_amount' => 'nullable|numeric',
+        'rent_amount' => 'nullable|numeric',
+    ]);
+    HostelStudent::create($request->only([
+        'student_id',
+        'room_number',
+        'admission_in_date',
+        'bed_number',
+        'deposit_amount',
+        'rent_amount',
+    ]));
+    return Redirect::back()->with('status', 'Student added to hostel successfully!');
+})->name('hostel-students.store');

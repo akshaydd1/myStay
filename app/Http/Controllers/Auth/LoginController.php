@@ -19,6 +19,9 @@ class LoginController extends Controller
         $student = StudentRegistration::where('email', $credentials['email'])->first();
         if ($student && $student->password && Hash::check($credentials['password'], $student->password)) {
             session(['student_id' => $student->student_id]);
+            if ($student->is_admin) {
+                return redirect()->intended('/admin_dashboard');
+            }
             return redirect()->intended('/dashboard');
         }
 

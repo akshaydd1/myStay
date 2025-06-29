@@ -3,7 +3,7 @@
 @section('content')
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-10">
+        <div class="col-md-12">
             <div class="card shadow">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <span>Admin Dashboard</span>
@@ -13,38 +13,118 @@
                     </form>
                 </div>
                 <div class="card-body">
-                    <h4>Registered Users</h4>
-                    <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addHostelStudentModal">Add Student in Hostel</button>
-                    <table class="table table-bordered table-striped mt-3">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>First Name</th>
-                                <th>Last Name</th>
-                                <th>Email</th>
-                                <th>Gender</th>
-                                <th>Date of Birth</th>
-                                <th>City</th>
-                                <th>State</th>
-                                <th>Is Admin</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($users as $user)
-                                <tr>
-                                    <td>{{ $loop->iteration }}</td>
-                                    <td>{{ $user->first_name }}</td>
-                                    <td>{{ $user->last_name }}</td>
-                                    <td>{{ $user->email }}</td>
-                                    <td>{{ $user->gender }}</td>
-                                    <td>{{ $user->date_of_birth }}</td>
-                                    <td>{{ $user->city }}</td>
-                                    <td>{{ $user->state }}</td>
-                                    <td>{{ $user->is_admin ? 'Yes' : 'No' }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                    <!-- Dashboard Summary Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-3">
+                            <div class="card text-center shadow-sm h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title text-muted">Registered Users</h6>
+                                    <h2 class="fw-bold">{{ $users->count() }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card text-center shadow-sm h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title text-muted">Hostel Students</h6>
+                                    <h2 class="fw-bold">{{ $hostelStudents->count() }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card text-center shadow-sm h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title text-muted">Profit This Month</h6>
+                                    <h2 class="fw-bold">
+                                        ₹{{
+                                            $hostelStudents->where('admission_in_date', '>=', now()->startOfMonth()->toDateString())
+                                                ->sum('rent_amount')
+                                        }}
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Subnavbar -->
+                    <ul class="nav nav-tabs mb-4" id="adminTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab" aria-controls="users" aria-selected="true">Registered Users</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="hostel-tab" data-bs-toggle="tab" data-bs-target="#hostel" type="button" role="tab" aria-controls="hostel" aria-selected="false">Hostel Students</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="adminTabContent">
+                        <!-- Registered Users Tab -->
+                        <div class="tab-pane fade show active" id="users" role="tabpanel" aria-labelledby="users-tab">
+                            <h4>Registered Users</h4>
+                            <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addHostelStudentModal">Add Student in Hostel</button>
+                            <table class="table table-bordered table-striped mt-3">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>First Name</th>
+                                        <th>Last Name</th>
+                                        <th>Email</th>
+                                        <th>Gender</th>
+                                        <th>Date of Birth</th>
+                                        <th>City</th>
+                                        <th>State</th>
+                                        <th>Is Admin</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($users as $user)
+                                        <tr>
+                                            <td>{{ $loop->iteration }}</td>
+                                            <td>{{ $user->first_name }}</td>
+                                            <td>{{ $user->last_name }}</td>
+                                            <td>{{ $user->email }}</td>
+                                            <td>{{ $user->gender }}</td>
+                                            <td>{{ $user->date_of_birth }}</td>
+                                            <td>{{ $user->city }}</td>
+                                            <td>{{ $user->state }}</td>
+                                            <td>{{ $user->is_admin ? 'Yes' : 'No' }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- Hostel Students Tab -->
+                        <div class="tab-pane fade" id="hostel" role="tabpanel" aria-labelledby="hostel-tab">
+                            <h4>Hostel Students</h4>
+                            <table class="table table-bordered table-striped mt-3">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Student Name</th>
+                                        <th>Room Number</th>
+                                        <th>Admission In</th>
+                                        <th>Admission Out</th>
+                                        <th>Bed Number</th>
+                                        <th>Deposit</th>
+                                        <th>Rent</th>
+                                        <th>Created At</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($hostelStudents as $hostel)
+                                        <tr>
+                                            <td>{{ $loop->iteration }}</td>
+                                            <td>{{ optional($hostel->student)->first_name }} {{ optional($hostel->student)->last_name }}</td>
+                                            <td>{{ $hostel->room_number }}</td>
+                                            <td>{{ $hostel->admission_in_date }}</td>
+                                            <td>{{ $hostel->admission_out_date }}</td>
+                                            <td>{{ $hostel->bed_number }}</td>
+                                            <td>{{ $hostel->deposit_amount }}</td>
+                                            <td>{{ $hostel->rent_amount }}</td>
+                                            <td>{{ $hostel->created_at }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
 
                     <!-- Add Hostel Student Modal -->
                     <div class="modal fade" id="addHostelStudentModal" tabindex="-1" aria-labelledby="addHostelStudentModalLabel" aria-hidden="true">

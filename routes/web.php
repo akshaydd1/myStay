@@ -30,8 +30,8 @@ Route::get('/dashboard', function () {
     if (session()->has('student_id')) {
         $student = StudentRegistration::find(session('student_id'));
         if ($student && $student->is_admin) {
-            $users = StudentRegistration::all();
-            return view('admin_dashboard', compact('users'));
+            // Redirect admin to the correct dashboard route
+            return redirect()->route('admin_dashboard');
         }
     }
     return view('dashboard', compact('student'));
@@ -42,7 +42,8 @@ Route::get('/admin_dashboard', function () {
         $student = App\Models\StudentRegistration::find(session('student_id'));
         if ($student && $student->is_admin) {
             $users = App\Models\StudentRegistration::all();
-            return view('admin_dashboard', compact('users'));
+            $hostelStudents = App\Models\HostelStudent::with('student')->get();
+            return view('admin_dashboard', compact('users', 'hostelStudents'));
         }
     }
     return redirect('/login');

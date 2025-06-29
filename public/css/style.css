@@ -1,0 +1,39 @@
+/* Hero Section Styles */
+.hero-section {
+  background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.3)),
+              url('../images/hero-bg.jpg') center center/cover no-repeat;
+  min-height: 60vh;
+  padding: 80px 0 60px 0;
+}
+
+.booking-form input,
+.booking-form select {
+  border-radius: 0.5rem;
+  min-width: 120px;
+}
+
+.booking-form button {
+  border-radius: 0.5rem;
+  font-weight: 600;
+}
+
+.card-img-top {
+  height: 200px;
+  object-fit: cover;
+}
+
+/* Facilities Icons */
+.bi {
+  margin-bottom: 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 40px 0;
+    min-height: 40vh;
+  }
+  .card-img-top {
+    height: 150px;
+  }
+}

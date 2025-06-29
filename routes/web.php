@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Auth;
 use App\Models\StudentRegistration;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 Route::get('/', function () {
     return view('landing');
@@ -47,3 +49,57 @@ Route::post('/logout', function () {
     session()->forget('student_id');
     return redirect('/');
 })->name('logout');
+
+Route::get('/password/forgot', function () {
+    return view('auth.passwords.email');
+})->name('password.request');
+
+Route::post('/password/email', function (\Illuminate\Http\Request $request) {
+    $request->validate(['email' => 'required|email']);
+    $student = App\Models\StudentRegistration::where('email', $request->email)->first();
+    if (!$student) {
+        return back()->withErrors(['email' => 'We can\'t find a user with that email address.']);
+    }
+    $token = Str::random(60);
+    \DB::table('password_resets')->updateOrInsert(
+        ['email' => $request->email],
+        [
+            'email' => $request->email,
+            'token' => $token,
+            'created_at' => now(),
+        ]
+    );
+    $resetLink = url('/password/reset/' . $token . '?email=' . urlencode($request->email));
+    Mail::raw('Click here to reset your password: ' . $resetLink, function ($message) use ($request) {
+        $message->to($request->email)->subject('Reset Password');
+    });
+    return back()->with('status', 'We have emailed your password reset link!');
+})->name('password.email');
+
+Route::get('/password/reset/{token}', function ($token, \Illuminate\Http\Request $request) {
+    $email = $request->query('email');
+    return view('auth.passwords.reset', compact('token', 'email'));
+})->name('password.reset');
+
+Route::post('/password/reset', function (\Illuminate\Http\Request $request) {
+    $request->validate([
+        'email' => 'required|email',
+        'password' => 'required|confirmed',
+        'token' => 'required',
+    ]);
+    $reset = \DB::table('password_resets')->where([
+        ['email', $request->email],
+        ['token', $request->token],
+    ])->first();
+    if (!$reset) {
+        return back()->withErrors(['email' => 'Invalid or expired token.']);
+    }
+    $student = App\Models\StudentRegistration::where('email', $request->email)->first();
+    if (!$student) {
+        return back()->withErrors(['email' => 'No user found.']);
+    }
+    $student->password = bcrypt($request->password);
+    $student->save();
+    \DB::table('password_resets')->where('email', $request->email)->delete();
+    return redirect('/login')->with('status', 'Password has been reset!');
+})->name('password.update');

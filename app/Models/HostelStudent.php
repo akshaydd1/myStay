@@ -20,4 +20,9 @@ class HostelStudent extends Model
     {
         return $this->belongsTo(StudentRegistration::class, 'student_id', 'student_id');
     }
+
+    public function rentPayments()
+    {
+        return $this->hasMany(\App\Models\HostelRentPayment::class, 'hostel_student_id');
+    }
 }

@@ -53,6 +53,9 @@
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="hostel-tab" data-bs-toggle="tab" data-bs-target="#hostel" type="button" role="tab" aria-controls="hostel" aria-selected="false">Hostel Students</button>
                         </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="payments-tab" data-bs-toggle="tab" data-bs-target="#payments" type="button" role="tab" aria-controls="payments" aria-selected="false">Student Payment List</button>
+                        </li>
                     </ul>
                     <div class="tab-content" id="adminTabContent">
                         <!-- Registered Users Tab -->
@@ -119,6 +122,76 @@
                                             <td>{{ $hostel->deposit_amount }}</td>
                                             <td>{{ $hostel->rent_amount }}</td>
                                             <td>{{ $hostel->created_at }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- Student Payment List Tab -->
+                        <div class="tab-pane fade" id="payments" role="tabpanel" aria-labelledby="payments-tab">
+                            <h4>Student Payment List</h4>
+                            <table class="table table-bordered table-striped mt-3">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Name</th>
+                                        <th>Actual Rent</th>
+                                        <th>Paid Rent</th>
+                                        <th>Remaining Rent</th>
+                                        <th>Payment Status</th>
+                                        <th>Payment</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($hostelStudents as $hostel)
+                                        @php
+                                            $actualRent = $hostel->rent_amount ?? 0;
+                                            $paidRent = optional($hostel->rentPayments)->sum('rent_amount');
+                                            $remainingRent = $actualRent - $paidRent;
+                                            $status = $remainingRent <= 0 ? 'Paid' : ($paidRent > 0 ? 'Partial' : 'Unpaid');
+                                        @endphp
+                                        <tr>
+                                            <td>{{ $loop->iteration }}</td>
+                                            <td>{{ optional($hostel->student)->first_name }} {{ optional($hostel->student)->last_name }}</td>
+                                            <td>₹{{ $actualRent }}</td>
+                                            <td>₹{{ $paidRent }}</td>
+                                            <td>₹{{ $remainingRent }}</td>
+                                            <td>
+                                                <span class="badge {{ $status == 'Paid' ? 'bg-success' : ($status == 'Partial' ? 'bg-warning text-dark' : 'bg-danger') }}">{{ $status }}</span>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#paymentModal{{ $hostel->id }}">Payment</button>
+                                                <!-- Payment Modal -->
+                                                <div class="modal fade" id="paymentModal{{ $hostel->id }}" tabindex="-1" aria-labelledby="paymentModalLabel{{ $hostel->id }}" aria-hidden="true">
+                                                    <div class="modal-dialog">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title" id="paymentModalLabel{{ $hostel->id }}">Pay Rent for {{ optional($hostel->student)->first_name }} {{ optional($hostel->student)->last_name }}</h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <form method="POST" action="{{ route('hostel-rent-payments.store') }}">
+                                                                @csrf
+                                                                <input type="hidden" name="student_id" value="{{ $hostel->student_id }}">
+                                                                <input type="hidden" name="hostel_student_id" value="{{ $hostel->id }}">
+                                                                <div class="modal-body">
+                                                                    <div class="mb-3">
+                                                                        <label class="form-label">Name</label>
+                                                                        <input type="text" class="form-control" value="{{ optional($hostel->student)->first_name }} {{ optional($hostel->student)->last_name }}" readonly>
+                                                                    </div>
+                                                                    <div class="mb-3">
+                                                                        <label class="form-label">Amount to Pay</label>
+                                                                        <input type="number" class="form-control" name="amount" max="{{ $remainingRent }}" min="1" value="{{ $remainingRent > 0 ? $remainingRent : 0 }}" required>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="modal-footer">
+                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                                    <button type="submit" class="btn btn-primary">Submit Payment</button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
                                         </tr>
                                     @endforeach
                                 </tbody>

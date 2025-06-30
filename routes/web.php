@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use App\Models\HostelStudent;
+use App\Models\HostelRentPayment;
 
 Route::get('/', function () {
     return view('landing');
@@ -127,3 +128,27 @@ Route::post('/hostel-students', function (Request $request) {
     ]));
     return Redirect::back()->with('status', 'Student added to hostel successfully!');
 })->name('hostel-students.store');
+
+Route::post('/hostel-rent-payments', function (Request $request) {
+    $request->validate([
+        'student_id' => 'required|exists:student_registrations,student_id',
+        'hostel_student_id' => 'required|exists:hostel_students,id',
+        'amount' => 'required|numeric|min:1',
+    ]);
+    $hostelStudent = HostelStudent::findOrFail($request->hostel_student_id);
+    $actualRent = $hostelStudent->rent_amount ?? 0;
+    $paidRent = $hostelStudent->rentPayments()->sum('rent_amount');
+    $remainingRent = $actualRent - $paidRent;
+    $amountToPay = min($request->amount, $remainingRent);
+    if ($amountToPay > 0) {
+        \App\Models\HostelRentPayment::create([
+            'student_id' => $request->student_id,
+            'hostel_student_id' => $request->hostel_student_id,
+            'payment_month' => now()->startOfMonth()->toDateString(),
+            'rent_amount' => $amountToPay,
+            'is_paid' => ($amountToPay >= $remainingRent),
+            'payment_date' => now()->toDateString(),
+        ]);
+    }
+    return Redirect::back()->with('status', 'Payment recorded successfully!');
+})->name('hostel-rent-payments.store');

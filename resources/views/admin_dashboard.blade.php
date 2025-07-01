@@ -56,6 +56,9 @@
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="payments-tab" data-bs-toggle="tab" data-bs-target="#payments" type="button" role="tab" aria-controls="payments" aria-selected="false">Student Payment List</button>
                         </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="expenses-tab" data-bs-toggle="tab" data-bs-target="#expenses" type="button" role="tab" aria-controls="expenses" aria-selected="false">Expense List</button>
+                        </li>
                     </ul>
                     <div class="tab-content" id="adminTabContent">
                         <!-- Registered Users Tab -->
@@ -197,6 +200,46 @@
                                 </tbody>
                             </table>
                         </div>
+                        <!-- Expense List Tab -->
+                        <div class="tab-pane fade" id="expenses" role="tabpanel" aria-labelledby="expenses-tab">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h4>Expense List</h4>
+                                <div>
+                                    <button class="btn btn-info me-2" data-bs-toggle="modal" data-bs-target="#addCategoryModal">Add Category</button>
+                                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addExpenseModal">Add Expense</button>
+                                </div>
+                            </div>
+                            <table class="table table-bordered table-striped mt-3">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Expense Date</th>
+                                        <th>Amount</th>
+                                        <th>Category Name</th>
+                                        <th>Receipt</th>
+                                        <th>Note</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($expenses as $expense)
+                                        <tr>
+                                            <td>{{ $expense->expense_id }}</td>
+                                            <td>{{ $expense->expense_date }}</td>
+                                            <td>₹{{ $expense->amount }}</td>
+                                            <td>{{ optional($expense->category)->category_name }}</td>
+                                            <td>
+                                                @if($expense->receipt)
+                                                    <a href="{{ asset('storage/' . $expense->receipt) }}" target="_blank" class="btn btn-info btn-sm">View</a>
+                                                @else
+                                                    -
+                                                @endif
+                                            </td>
+                                            <td>{{ $expense->note }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                     <!-- Add Hostel Student Modal -->
@@ -247,6 +290,77 @@
                           </form>
                         </div>
                       </div>
+                    </div>
+
+                    <!-- Add Expense Modal -->
+                    <div class="modal fade" id="addExpenseModal" tabindex="-1" aria-labelledby="addExpenseModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="addExpenseModalLabel">Add Expense</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <form method="POST" action="{{ route('expenses.store') }}" enctype="multipart/form-data">
+                                    @csrf
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label for="expense_date" class="form-label">Expense Date</label>
+                                            <input type="date" class="form-control" id="expense_date" name="expense_date" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="amount" class="form-label">Amount</label>
+                                            <input type="number" step="0.01" class="form-control" id="amount" name="amount" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="category_id" class="form-label">Category Name</label>
+                                            <select class="form-select" id="category_id" name="category_id" required>
+                                                <option value="" disabled selected>Select Category</option>
+                                                @foreach(App\Models\ExpenseCategory::all() as $cat)
+                                                    <option value="{{ $cat->id }}">{{ $cat->category_name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="receipt" class="form-label">Receipt</label>
+                                            <input type="file" class="form-control" id="receipt" name="receipt" accept="image/*,application/pdf">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="note" class="form-label">Note</label>
+                                            <textarea class="form-control" id="note" name="note"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        <button type="submit" class="btn btn-primary">Save</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Add Category Modal -->
+                    <div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="addCategoryModalLabel">Add Expense Category</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <form method="POST" action="{{ route('expense-categories.store') }}">
+                                    @csrf
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label for="category_name" class="form-label">Category Name</label>
+                                            <input type="text" class="form-control" id="category_name" name="category_name" required maxlength="100">
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        <button type="submit" class="btn btn-primary">Save</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
                     </div>
 
                     @if(session('status'))

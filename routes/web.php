@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use App\Models\HostelStudent;
 use App\Models\HostelRentPayment;
+use App\Models\HostelExpense;
+use App\Models\ExpenseCategory;
 
 Route::get('/', function () {
     return view('landing');
@@ -44,7 +46,8 @@ Route::get('/admin_dashboard', function () {
         if ($student && $student->is_admin) {
             $users = App\Models\StudentRegistration::all();
             $hostelStudents = App\Models\HostelStudent::with('student')->get();
-            return view('admin_dashboard', compact('users', 'hostelStudents'));
+            $expenses = HostelExpense::with('category')->orderByDesc('expense_date')->get();
+            return view('admin_dashboard', compact('users', 'hostelStudents', 'expenses'));
         }
     }
     return redirect('/login');
@@ -152,3 +155,5 @@ Route::post('/hostel-rent-payments', function (Request $request) {
     }
     return Redirect::back()->with('status', 'Payment recorded successfully!');
 })->name('hostel-rent-payments.store');
+
+require __DIR__.'/expenses.php';
